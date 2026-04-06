@@ -57,9 +57,9 @@ export default function HomePage() {
           AI runs in your browser
         </div>
         <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 tracking-tight">
-          Professional Image Editing
+          Ganga Studio
           <br />
-          <span className="text-violet-600">Powered by AI</span>
+          <span className="text-violet-600">BG Remover & Tools</span>
         </h1>
         <p className="mt-4 text-lg text-gray-600 max-w-2xl mx-auto">
           Remove backgrounds, erase objects, clean up old photos, and colorize

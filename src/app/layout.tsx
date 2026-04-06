@@ -14,9 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "PhotoAI Tools - AI Image Editing",
+  title: "Ganga Studio BG Remover - AI Image Editing",
   description:
-    "Remove backgrounds, erase objects, clean up images, and colorize photos with AI-powered tools running entirely in your browser.",
+    "Ganga Studio's AI-powered image tools: remove backgrounds, erase objects, clean up images, and colorize photos — all in your browser.",
 };
 
 export default function RootLayout({
