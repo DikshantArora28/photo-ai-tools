@@ -38,13 +38,11 @@ export function DownloadPanel() {
   };
 
   return (
-    <div className="space-y-3 pt-3 border-t border-gray-200">
-      <h4 className="text-sm font-semibold text-gray-900">Download</h4>
-
-      <div className="flex gap-2">
+    <div className="space-y-2 pt-2 border-t border-gray-200">
+      <div className="flex gap-1.5 items-center">
         <button
           onClick={() => setFormat("png")}
-          className={`flex-1 text-sm py-1.5 rounded-md border transition-colors ${
+          className={`flex-1 text-xs py-1 rounded-md border transition-colors ${
             format === "png"
               ? "border-violet-500 bg-violet-50 text-violet-700"
               : "border-gray-200 text-gray-600 hover:bg-gray-50"
@@ -54,7 +52,7 @@ export function DownloadPanel() {
         </button>
         <button
           onClick={() => setFormat("jpeg")}
-          className={`flex-1 text-sm py-1.5 rounded-md border transition-colors ${
+          className={`flex-1 text-xs py-1 rounded-md border transition-colors ${
             format === "jpeg"
               ? "border-violet-500 bg-violet-50 text-violet-700"
               : "border-gray-200 text-gray-600 hover:bg-gray-50"
@@ -65,19 +63,17 @@ export function DownloadPanel() {
       </div>
 
       {format === "jpeg" && (
-        <div className="space-y-1">
-          <div className="flex items-center justify-between text-xs text-gray-500">
-            <span>Quality</span>
-            <span>{quality}%</span>
-          </div>
+        <div className="flex items-center gap-2 text-xs text-gray-500">
+          <span>Quality</span>
           <input
             type="range"
             min={10}
             max={100}
             value={quality}
             onChange={(e) => setQuality(Number(e.target.value))}
-            className="w-full h-1.5 bg-gray-200 rounded-full appearance-none cursor-pointer accent-violet-600"
+            className="flex-1 h-1 bg-gray-200 rounded-full appearance-none cursor-pointer accent-violet-600"
           />
+          <span className="tabular-nums w-7 text-right">{quality}%</span>
         </div>
       )}
 
@@ -85,8 +81,9 @@ export function DownloadPanel() {
         onClick={handleDownload}
         disabled={!processed}
         className="w-full"
+        size="sm"
       >
-        <Download className="w-4 h-4" />
+        <Download className="w-3.5 h-3.5" />
         Download {format.toUpperCase()}
       </Button>
     </div>

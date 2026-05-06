@@ -30,7 +30,7 @@ export function ColorizeControls({ onProcess, selectedColor, onColorChange }: Co
 
   return (
     <Sidebar title="Colorize B&W">
-      <div className="space-y-4">
+      <div className="space-y-2.5">
         <Slider
           label="Intensity"
           value={settings.intensity}
@@ -53,17 +53,15 @@ export function ColorizeControls({ onProcess, selectedColor, onColorChange }: Co
           onColorChange={onColorChange}
         />
 
-        <div className="p-2 rounded-lg bg-amber-50 border border-amber-200">
-          <p className="text-xs text-amber-700">
-            Automatic colorization uses heuristic methods. For best results, add color hints by clicking on the image.
-          </p>
-        </div>
+        <p className="text-[10px] text-amber-600 leading-tight">
+          Add color hints by clicking the image for best results.
+        </p>
 
         <Button
           onClick={onProcess}
           disabled={!original || isProcessing}
           className="w-full"
-          size="lg"
+          size="md"
         >
           <Wand2 className="w-4 h-4" />
           {isProcessing ? "Processing..." : "Colorize Image"}
