@@ -6,29 +6,29 @@ import { Scissors, Eraser, Sparkles, Palette, ArrowRight, Shield, Zap, Globe } f
 const tools = [
   {
     href: "/background-remover",
-    title: "Background Remover",
-    description: "Remove backgrounds from any image with AI. Handles hair, transparent objects, and complex edges.",
+    title: "BG Remover",
+    description: "Remove backgrounds with AI. Handles hair & complex edges.",
     icon: Scissors,
     color: "violet",
   },
   {
     href: "/object-remover",
     title: "Object Remover",
-    description: "Erase unwanted objects or people from photos. AI fills the space naturally.",
+    description: "Erase unwanted objects or people. AI fills naturally.",
     icon: Eraser,
     color: "blue",
   },
   {
     href: "/image-cleanup",
     title: "Image Cleanup",
-    description: "Fix old photos by removing scratches, dust, and noise while preserving details.",
+    description: "Fix old photos — remove scratches, dust, and noise.",
     icon: Sparkles,
     color: "emerald",
   },
   {
     href: "/colorize",
     title: "Colorize B&W",
-    description: "Transform black & white photos into vibrant color with AI-powered colorization.",
+    description: "Transform black & white photos into vibrant color.",
     icon: Palette,
     color: "amber",
   },
@@ -42,50 +42,49 @@ const colorMap: Record<string, { bg: string; icon: string; border: string; hover
 };
 
 const features = [
-  { icon: Shield, title: "100% Private", description: "All processing happens in your browser. Your images never leave your device." },
-  { icon: Zap, title: "AI-Powered", description: "Advanced AI models running locally via WebAssembly for professional results." },
-  { icon: Globe, title: "No Upload Required", description: "Works offline after first load. No server, no cloud, no waiting." },
+  { icon: Shield, title: "100% Private", description: "Images never leave your device." },
+  { icon: Zap, title: "AI-Powered", description: "WebAssembly models for pro results." },
+  { icon: Globe, title: "No Upload", description: "Works offline after first load." },
 ];
 
 export default function HomePage() {
   return (
-    <div className="flex-1">
+    <div className="flex-1 flex flex-col h-[calc(100vh-3.5rem)]">
       {/* Hero */}
-      <section className="max-w-5xl mx-auto px-4 pt-16 pb-12 text-center">
-        <div className="inline-flex items-center gap-2 rounded-full bg-violet-100 px-3 py-1 text-sm font-medium text-violet-700 mb-6">
-          <Zap className="w-3.5 h-3.5" />
+      <section className="max-w-5xl mx-auto px-4 pt-6 pb-4 text-center shrink-0">
+        <div className="inline-flex items-center gap-1.5 rounded-full bg-violet-100 px-2.5 py-0.5 text-xs font-medium text-violet-700 mb-3">
+          <Zap className="w-3 h-3" />
           AI runs in your browser
         </div>
-        <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 tracking-tight">
+        <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight leading-tight">
           Ganga Studio
-          <br />
-          <span className="text-violet-600">BG Remover & Tools</span>
+          <span className="text-violet-600"> BG Remover & Tools</span>
         </h1>
-        <p className="mt-4 text-lg text-gray-600 max-w-2xl mx-auto">
+        <p className="mt-2 text-sm text-gray-600 max-w-xl mx-auto">
           Remove backgrounds, erase objects, clean up old photos, and colorize
-          black & white images. All processing runs locally in your browser.
+          B&W images. All processing runs locally in your browser.
         </p>
       </section>
 
       {/* Tools Grid */}
-      <section className="max-w-5xl mx-auto px-4 pb-16">
-        <div className="grid sm:grid-cols-2 gap-4">
+      <section className="max-w-5xl mx-auto px-4 pb-4 flex-1 flex flex-col justify-center w-full">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {tools.map(({ href, title, description, icon: Icon, color }) => {
             const c = colorMap[color];
             return (
               <Link
                 key={href}
                 href={href}
-                className={`group relative flex flex-col p-6 rounded-2xl border ${c.border} ${c.hover} bg-white shadow-sm hover:shadow-md transition-all duration-200`}
+                className={`group flex flex-col p-4 rounded-xl border ${c.border} ${c.hover} bg-white shadow-sm hover:shadow-md transition-all duration-200`}
               >
-                <div className={`w-12 h-12 rounded-xl ${c.bg} flex items-center justify-center mb-4`}>
-                  <Icon className={`w-6 h-6 ${c.icon}`} />
+                <div className={`w-10 h-10 rounded-lg ${c.bg} flex items-center justify-center mb-3`}>
+                  <Icon className={`w-5 h-5 ${c.icon}`} />
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-1">{title}</h3>
-                <p className="text-sm text-gray-600 flex-1">{description}</p>
-                <div className="mt-4 flex items-center gap-1 text-sm font-medium text-violet-600 group-hover:gap-2 transition-all">
+                <h3 className="text-sm font-semibold text-gray-900 mb-0.5">{title}</h3>
+                <p className="text-xs text-gray-500 flex-1 leading-relaxed">{description}</p>
+                <div className="mt-2 flex items-center gap-1 text-xs font-medium text-violet-600 group-hover:gap-1.5 transition-all">
                   Try it now
-                  <ArrowRight className="w-4 h-4" />
+                  <ArrowRight className="w-3.5 h-3.5" />
                 </div>
               </Link>
             );
@@ -94,16 +93,16 @@ export default function HomePage() {
       </section>
 
       {/* Features */}
-      <section className="border-t border-gray-100 bg-gray-50/50">
-        <div className="max-w-5xl mx-auto px-4 py-16">
-          <div className="grid sm:grid-cols-3 gap-8">
+      <section className="border-t border-gray-100 bg-gray-50/50 shrink-0">
+        <div className="max-w-5xl mx-auto px-4 py-4">
+          <div className="grid grid-cols-3 gap-6">
             {features.map(({ icon: Icon, title, description }) => (
               <div key={title} className="text-center">
-                <div className="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center mx-auto mb-3">
-                  <Icon className="w-5 h-5 text-violet-600" />
+                <div className="w-8 h-8 rounded-lg bg-violet-100 flex items-center justify-center mx-auto mb-1.5">
+                  <Icon className="w-4 h-4 text-violet-600" />
                 </div>
-                <h3 className="font-semibold text-gray-900 mb-1">{title}</h3>
-                <p className="text-sm text-gray-600">{description}</p>
+                <h3 className="text-xs font-semibold text-gray-900">{title}</h3>
+                <p className="text-[11px] text-gray-500">{description}</p>
               </div>
             ))}
           </div>
