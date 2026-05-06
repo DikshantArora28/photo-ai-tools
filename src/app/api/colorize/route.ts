@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Client } from "@gradio/client";
 
-export const maxDuration = 60; // Allow up to 60s for AI processing
+export const maxDuration = 60;
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,34 +12,40 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "No image provided" }, { status: 400 });
     }
 
-    // Convert File to Blob for Gradio
     const buffer = await file.arrayBuffer();
     const blob = new Blob([buffer], { type: file.type });
 
-    // Connect to DeOldify colorization space on HuggingFace
-    // Try multiple spaces as fallback
+    // Try multiple HuggingFace Spaces for colorization
     const spaces = [
-      "marshmellow77/deoldify",
-      "kevinwang676/Image-Colorization",
+      { name: "marshmellow77/deoldify", endpoint: "/predict", paramKey: "input_image" },
+      { name: "kevinwang676/Image-Colorization", endpoint: "/predict", paramKey: "input_image" },
     ];
 
     let result: Blob | null = null;
 
     for (const space of spaces) {
       try {
-        const client = await Client.connect(space, {
-          hf_token: process.env.HF_TOKEN as `hf_${string}` | undefined,
-        });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const client = await Client.connect(space.name) as any;
 
-        const prediction = await client.predict("/predict", {
-          input_image: blob,
-        });
+        // Try named parameter first
+        let prediction;
+        try {
+          prediction = await client.predict(space.endpoint, {
+            [space.paramKey]: blob,
+          });
+        } catch {
+          // Try positional parameter
+          prediction = await client.predict(space.endpoint, [blob]);
+        }
 
-        // Extract the image from the result
-        const data = prediction.data as Array<{ url?: string; path?: string }>;
-        if (data && data[0]) {
+        const data = prediction?.data;
+        if (data && Array.isArray(data) && data[0]) {
           const imageInfo = data[0];
-          const imageUrl = imageInfo.url || imageInfo.path;
+          const imageUrl = typeof imageInfo === "string"
+            ? imageInfo
+            : imageInfo?.url || imageInfo?.path;
+
           if (imageUrl) {
             const response = await fetch(imageUrl);
             if (response.ok) {
@@ -49,33 +55,8 @@ export async function POST(request: NextRequest) {
           }
         }
       } catch (err) {
-        console.log(`Space ${space} failed, trying next...`, err);
+        console.log(`Space ${space.name} failed:`, err);
         continue;
-      }
-    }
-
-    if (!result) {
-      // Fallback: try with different API endpoint name
-      try {
-        const client = await Client.connect("marshmellow77/deoldify", {
-          hf_token: process.env.HF_TOKEN as `hf_${string}` | undefined,
-        });
-
-        const prediction = await client.predict(0, [blob]);
-
-        const data = prediction.data as Array<{ url?: string; path?: string }>;
-        if (data && data[0]) {
-          const imageInfo = data[0];
-          const imageUrl = imageInfo.url || imageInfo.path;
-          if (imageUrl) {
-            const response = await fetch(imageUrl);
-            if (response.ok) {
-              result = await response.blob();
-            }
-          }
-        }
-      } catch (err) {
-        console.log("Fallback also failed:", err);
       }
     }
 
@@ -86,7 +67,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Return the colorized image
     const resultBuffer = await result.arrayBuffer();
     return new NextResponse(resultBuffer, {
       headers: {
