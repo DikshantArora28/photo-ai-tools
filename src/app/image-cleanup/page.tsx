@@ -7,46 +7,61 @@ import { CleanupCanvas } from "@/components/image-cleanup/CleanupCanvas";
 import { CleanupControls } from "@/components/image-cleanup/CleanupControls";
 import { useImageStore } from "@/store/useImageStore";
 import { useAppStore } from "@/store/useAppStore";
-import { useToolStore } from "@/store/useToolStore";
-import { cleanupImage } from "@/lib/processing/imageCleanup";
-import { loadImage, blobToObjectURL, canvasToBlob } from "@/lib/utils/imageConversion";
-import { imageToImageData, imageDataToCanvas } from "@/lib/canvas/canvasUtils";
+import { blobToObjectURL, loadImage } from "@/lib/utils/imageConversion";
 
 export default function ImageCleanupPage() {
   const original = useImageStore((s) => s.original);
   const setProcessed = useImageStore((s) => s.setProcessed);
   const setProcessing = useAppStore((s) => s.setProcessing);
+  const setProgress = useAppStore((s) => s.setProgress);
   const setError = useAppStore((s) => s.setError);
   const resetApp = useAppStore((s) => s.reset);
-  const settings = useToolStore((s) => s.imageCleanup);
 
   const handleProcess = useCallback(async () => {
     if (!original) return;
 
-    setProcessing(true, "Cleaning up image...");
+    setProcessing(true, "Enhancing with AI...");
+    setProgress(10);
     setError(null);
 
     try {
-      const img = await loadImage(original.url);
-      const imageData = imageToImageData(img);
+      // Call AI enhancement API
+      const formData = new FormData();
+      formData.append("image", original.file);
 
-      const result = cleanupImage(imageData, {
-        noiseReduction: settings.noiseReduction,
-        sharpness: settings.sharpness,
-        scratchRemoval: settings.scratchRemoval,
+      setProgress(30);
+
+      const response = await fetch("/api/enhance", {
+        method: "POST",
+        body: formData,
       });
 
-      const canvas = imageDataToCanvas(result);
-      const blob = await canvasToBlob(canvas, "png");
-      const url = blobToObjectURL(blob);
+      setProgress(80);
 
-      setProcessed({ blob, url, width: canvas.width, height: canvas.height });
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = blobToObjectURL(blob);
+        const img = await loadImage(url);
+
+        setProcessed({
+          blob,
+          url,
+          width: img.naturalWidth,
+          height: img.naturalHeight,
+        });
+        resetApp();
+        return;
+      }
+
+      // If API fails, show error
+      const errorData = await response.json().catch(() => null);
+      setError(errorData?.error || "Enhancement service temporarily unavailable. Please try again.");
       resetApp();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to clean up image");
+      setError(err instanceof Error ? err.message : "Failed to enhance image");
       resetApp();
     }
-  }, [original, settings, setProcessed, setProcessing, setError, resetApp]);
+  }, [original, setProcessed, setProcessing, setProgress, setError, resetApp]);
 
   return (
     <ToolLayout sidebar={<CleanupControls onProcess={handleProcess} />}>

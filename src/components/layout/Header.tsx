@@ -8,7 +8,7 @@ import { Scissors, Eraser, Sparkles, Palette } from "lucide-react";
 const tools = [
   { href: "/background-remover", label: "BG Remover", icon: Scissors },
   { href: "/object-remover", label: "Object Remover", icon: Eraser },
-  { href: "/image-cleanup", label: "Cleanup", icon: Sparkles },
+  { href: "/image-cleanup", label: "Enhancer", icon: Sparkles },
   { href: "/colorize", label: "Colorize", icon: Palette },
 ];
 

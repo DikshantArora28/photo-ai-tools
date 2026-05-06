@@ -20,8 +20,8 @@ const tools = [
   },
   {
     href: "/image-cleanup",
-    title: "Image Cleanup",
-    description: "Fix old photos — remove scratches, dust, and noise.",
+    title: "Photo Enhancer",
+    description: "AI upscale & sharpen photos to HD quality.",
     icon: Sparkles,
     color: "emerald",
   },
