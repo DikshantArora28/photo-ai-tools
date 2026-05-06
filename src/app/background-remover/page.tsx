@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef } from "react";
+import { useCallback, useRef, useEffect } from "react";
 import { ToolLayout } from "@/components/layout/ToolLayout";
 import { ImageUploader } from "@/components/shared/ImageUploader";
 import { BgRemoverCanvas } from "@/components/bg-remover/BgRemoverCanvas";
@@ -10,13 +10,13 @@ import { useAppStore } from "@/store/useAppStore";
 import { useToolStore } from "@/store/useToolStore";
 import { removeImageBackground } from "@/lib/processing/backgroundRemoval";
 import { refineEdges } from "@/lib/processing/edgeRefinement";
-import { blobToObjectURL } from "@/lib/utils/imageConversion";
-import { loadImage } from "@/lib/utils/imageConversion";
+import { replaceBackground } from "@/lib/processing/backgroundReplace";
+import { blobToObjectURL, loadImage, canvasToBlob } from "@/lib/utils/imageConversion";
 import { imageToImageData, imageDataToCanvas } from "@/lib/canvas/canvasUtils";
-import { canvasToBlob } from "@/lib/utils/imageConversion";
 
 export default function BackgroundRemoverPage() {
   const original = useImageStore((s) => s.original);
+  const processed = useImageStore((s) => s.processed);
   const setProcessed = useImageStore((s) => s.setProcessed);
   const setProcessing = useAppStore((s) => s.setProcessing);
   const setProgress = useAppStore((s) => s.setProgress);
@@ -24,8 +24,51 @@ export default function BackgroundRemoverPage() {
   const resetApp = useAppStore((s) => s.reset);
   const settings = useToolStore((s) => s.bgRemover);
 
-  // Store raw result for re-applying refinements
+  // Store the transparent foreground (after edge refinement, before bg replace)
+  const foregroundBlobRef = useRef<Blob | null>(null);
+  // Store raw AI result for re-applying refinements
   const rawResultRef = useRef<Blob | null>(null);
+
+  // Helper: apply edge refinement + background replacement, then update processed
+  const applyForegroundWithBg = useCallback(
+    async (fgBlob: Blob) => {
+      try {
+        const fgUrl = blobToObjectURL(fgBlob);
+        const fgImg = await loadImage(fgUrl);
+        const fgCanvas = document.createElement("canvas");
+        fgCanvas.width = fgImg.naturalWidth;
+        fgCanvas.height = fgImg.naturalHeight;
+        fgCanvas.getContext("2d")!.drawImage(fgImg, 0, 0);
+        URL.revokeObjectURL(fgUrl);
+
+        let finalCanvas: HTMLCanvasElement;
+
+        if (settings.bgType === "transparent") {
+          finalCanvas = fgCanvas;
+        } else {
+          finalCanvas = await replaceBackground(fgCanvas, {
+            type: settings.bgType,
+            color: settings.bgColor,
+            gradient: settings.bgGradient,
+            imageSrc: settings.bgImage || undefined,
+          });
+        }
+
+        const finalBlob = await canvasToBlob(finalCanvas, "png");
+        const finalUrl = blobToObjectURL(finalBlob);
+
+        setProcessed({
+          blob: finalBlob,
+          url: finalUrl,
+          width: finalCanvas.width,
+          height: finalCanvas.height,
+        });
+      } catch {
+        // Silently fail
+      }
+    },
+    [settings.bgType, settings.bgColor, settings.bgGradient, settings.bgImage, setProcessed]
+  );
 
   const handleProcess = useCallback(async () => {
     if (!original) return;
@@ -41,7 +84,7 @@ export default function BackgroundRemoverPage() {
 
       rawResultRef.current = result;
 
-      // Apply initial edge refinement
+      // Apply edge refinement
       const url = blobToObjectURL(result);
       const img = await loadImage(url);
       const imageData = imageToImageData(img);
@@ -54,23 +97,20 @@ export default function BackgroundRemoverPage() {
       });
 
       const canvas = imageDataToCanvas(refined);
-      const finalBlob = await canvasToBlob(canvas, "png");
-      const finalUrl = blobToObjectURL(finalBlob);
+      const fgBlob = await canvasToBlob(canvas, "png");
+      foregroundBlobRef.current = fgBlob;
 
-      setProcessed({
-        blob: finalBlob,
-        url: finalUrl,
-        width: canvas.width,
-        height: canvas.height,
-      });
+      // Apply background replacement
+      await applyForegroundWithBg(fgBlob);
 
       resetApp();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to remove background");
       resetApp();
     }
-  }, [original, settings, setProcessed, setProcessing, setProgress, setError, resetApp]);
+  }, [original, settings.feather, settings.smooth, settings.threshold, setProcessed, setProcessing, setProgress, setError, resetApp, applyForegroundWithBg]);
 
+  // Re-apply edge refinement when feather/smooth changes
   const handleApplyRefinement = useCallback(async () => {
     if (!rawResultRef.current) return;
 
@@ -87,19 +127,21 @@ export default function BackgroundRemoverPage() {
       });
 
       const canvas = imageDataToCanvas(refined);
-      const finalBlob = await canvasToBlob(canvas, "png");
-      const finalUrl = blobToObjectURL(finalBlob);
+      const fgBlob = await canvasToBlob(canvas, "png");
+      foregroundBlobRef.current = fgBlob;
 
-      setProcessed({
-        blob: finalBlob,
-        url: finalUrl,
-        width: canvas.width,
-        height: canvas.height,
-      });
+      await applyForegroundWithBg(fgBlob);
     } catch {
-      // Silently fail on refinement errors
+      // Silently fail
     }
-  }, [settings, setProcessed]);
+  }, [settings.feather, settings.smooth, settings.threshold, applyForegroundWithBg]);
+
+  // Auto-apply background when bgType, bgColor, bgGradient, or bgImage changes
+  useEffect(() => {
+    if (!foregroundBlobRef.current || !processed) return;
+    applyForegroundWithBg(foregroundBlobRef.current);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [settings.bgType, settings.bgColor, settings.bgGradient, settings.bgImage]);
 
   return (
     <ToolLayout
