@@ -10,32 +10,32 @@ interface BeforeAfterSliderProps {
 
 export function BeforeAfterSlider({ beforeSrc, afterSrc, className }: BeforeAfterSliderProps) {
   return (
-    <div className={cn("flex gap-4 w-full h-full items-center justify-center p-4", className)}>
+    <div className={cn("flex gap-3 w-full h-full items-center justify-center px-3 py-2", className)}>
       {/* Before - Left side */}
-      <div className="flex-1 flex flex-col items-center gap-2 min-w-0">
-        <span className="px-3 py-1 rounded-full bg-gray-900/70 text-white text-xs font-semibold tracking-wide uppercase">
+      <div className="flex-1 flex flex-col items-center gap-1 min-w-0 max-h-[calc(100vh-5rem)]">
+        <span className="px-2.5 py-0.5 rounded-full bg-gray-900/70 text-white text-[10px] font-semibold tracking-wide uppercase shrink-0">
           Before
         </span>
-        <div className="w-full rounded-xl overflow-hidden shadow-lg border border-gray-200 bg-white">
+        <div className="w-full rounded-lg overflow-hidden shadow-md border border-gray-200 bg-white flex-1 min-h-0 flex items-center justify-center">
           <img
             src={beforeSrc}
             alt="Before"
-            className="w-full h-auto max-h-[calc(100vh-12rem)] object-contain"
+            className="max-w-full max-h-[calc(100vh-7rem)] object-contain"
             draggable={false}
           />
         </div>
       </div>
 
       {/* After - Right side */}
-      <div className="flex-1 flex flex-col items-center gap-2 min-w-0">
-        <span className="px-3 py-1 rounded-full bg-violet-600 text-white text-xs font-semibold tracking-wide uppercase">
+      <div className="flex-1 flex flex-col items-center gap-1 min-w-0 max-h-[calc(100vh-5rem)]">
+        <span className="px-2.5 py-0.5 rounded-full bg-violet-600 text-white text-[10px] font-semibold tracking-wide uppercase shrink-0">
           After
         </span>
-        <div className="w-full rounded-xl overflow-hidden shadow-lg border border-gray-200 checkerboard">
+        <div className="w-full rounded-lg overflow-hidden shadow-md border border-gray-200 checkerboard flex-1 min-h-0 flex items-center justify-center">
           <img
             src={afterSrc}
             alt="After"
-            className="w-full h-auto max-h-[calc(100vh-12rem)] object-contain"
+            className="max-w-full max-h-[calc(100vh-7rem)] object-contain"
             draggable={false}
           />
         </div>
