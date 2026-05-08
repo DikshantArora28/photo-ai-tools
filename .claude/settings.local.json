@@ -3,7 +3,9 @@
     "allow": [
       "Bash(export PATH=\"$PATH:/c/Program Files/nodejs:/c/Users/Domain/AppData/Roaming/npm\")",
       "Bash(npx vercel *)",
-      "Bash(node -e ' *)"
+      "Bash(node -e ' *)",
+      "Bash(npm ls *)",
+      "Bash(npm install *)"
     ]
   }
 }

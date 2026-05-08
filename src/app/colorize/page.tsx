@@ -7,6 +7,7 @@ import { ColorizeCanvas } from "@/components/colorize/ColorizeCanvas";
 import { ColorizeControls } from "@/components/colorize/ColorizeControls";
 import { useImageStore } from "@/store/useImageStore";
 import { useAppStore } from "@/store/useAppStore";
+import { colorizeImage } from "@/lib/processing/colorization";
 import { blobToObjectURL, loadImage } from "@/lib/utils/imageConversion";
 
 export default function ColorizePage() {
@@ -21,42 +22,32 @@ export default function ColorizePage() {
   const handleProcess = useCallback(async () => {
     if (!original) return;
 
-    setProcessing(true, "Colorizing with AI (DeOldify)...");
-    setProgress(10);
+    setProcessing(true, "Loading AI model...");
+    setProgress(5);
     setError(null);
 
     try {
-      const formData = new FormData();
-      formData.append("image", original.file);
-
-      setProgress(20);
-
-      const response = await fetch("/api/colorize", {
-        method: "POST",
-        body: formData,
+      // Run DeOldify ONNX model directly in the browser
+      const blob = await colorizeImage(original.file, {
+        onProgress: (message, percent) => {
+          setProcessing(true, message);
+          setProgress(percent);
+        },
       });
 
-      setProgress(80);
+      const url = blobToObjectURL(blob);
+      const img = await loadImage(url);
 
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = blobToObjectURL(blob);
-        const img = await loadImage(url);
-
-        setProcessed({
-          blob,
-          url,
-          width: img.naturalWidth,
-          height: img.naturalHeight,
-        });
-        resetApp();
-      } else {
-        const err = await response.json().catch(() => ({ error: "Unknown error" }));
-        setError(err.error || "Colorization failed. Please try again.");
-        resetApp();
-      }
+      setProcessed({
+        blob,
+        url,
+        width: img.naturalWidth,
+        height: img.naturalHeight,
+      });
+      resetApp();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Network error. Please try again.");
+      console.error("Colorization error:", err);
+      setError(err instanceof Error ? err.message : "Failed to colorize image. Please try again.");
       resetApp();
     }
   }, [original, setProcessed, setProcessing, setProgress, setError, resetApp]);

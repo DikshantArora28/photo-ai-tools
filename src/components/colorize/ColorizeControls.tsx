@@ -23,7 +23,7 @@ export function ColorizeControls({ onProcess }: ColorizeControlsProps) {
     <Sidebar title="Colorize B&W">
       <div className="space-y-2.5">
         <p className="text-xs text-gray-600 leading-relaxed">
-          Upload a black & white photo and our AI will automatically add realistic, natural colors.
+          Upload a B&W photo. DeOldify AI runs directly in your browser to add realistic colors. First use downloads a ~30MB model (cached after).
         </p>
 
         <Button
