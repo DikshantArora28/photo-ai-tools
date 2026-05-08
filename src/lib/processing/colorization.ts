@@ -7,8 +7,8 @@
 const MODEL_URL = "https://cdn.glitch.me/2046b88b-673a-457f-b1b8-7169ce9bf13a/deoldify-quant.onnx";
 const MODEL_SIZE = 256; // Model processes at 256x256
 
-// Cache the ONNX session
-let cachedSession: unknown = null;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let cachedSession: any = null;
 
 export interface ColorizeOptions {
   onProgress?: (message: string, percent: number) => void;
@@ -18,9 +18,10 @@ export async function colorizeImage(
   imageFile: File | Blob,
   options?: ColorizeOptions
 ): Promise<Blob> {
-  const ort = await import("onnxruntime-web");
+  // Dynamic import for browser-only module
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const ort = await import("onnxruntime-web") as any;
 
-  // Configure ONNX Runtime
   ort.env.wasm.numThreads = 1;
 
   const progress = options?.onProgress || (() => {});
@@ -33,7 +34,7 @@ export async function colorizeImage(
       executionProviders: ["wasm"],
     });
   }
-  const session = cachedSession as ort.InferenceSession;
+  const session = cachedSession;
 
   // Step 2: Load and prepare input image
   progress("Preparing image...", 40);
@@ -55,8 +56,8 @@ export async function colorizeImage(
   const pixelCount = MODEL_SIZE * MODEL_SIZE;
 
   for (let i = 0; i < pixelCount; i++) {
-    floatData[i] = pixels[i * 4];                     // R channel
-    floatData[pixelCount + i] = pixels[i * 4 + 1];    // G channel
+    floatData[i] = pixels[i * 4];                      // R channel
+    floatData[pixelCount + i] = pixels[i * 4 + 1];     // G channel
     floatData[2 * pixelCount + i] = pixels[i * 4 + 2]; // B channel
   }
 
@@ -69,10 +70,10 @@ export async function colorizeImage(
 
   // Step 4: Postprocess: CHW tensor -> RGBA ImageData
   progress("Generating output...", 85);
-  const outputData = output.data as Float32Array;
-  const channels = output.dims[1];
+  const outputData = new Float32Array(output.cpuData || output.data);
   const outH = output.dims[2];
   const outW = output.dims[3];
+  const channels = output.dims[1];
 
   const resultImageData = new ImageData(outW, outH);
   const resultPixels = resultImageData.data;
@@ -84,7 +85,7 @@ export async function colorizeImage(
         const tensorIdx = (c * outH + h) * outW + w;
         resultPixels[pixelIdx + c] = Math.max(0, Math.min(255, Math.round(outputData[tensorIdx])));
       }
-      resultPixels[pixelIdx + 3] = 255; // Alpha
+      resultPixels[pixelIdx + 3] = 255;
     }
   }
 
@@ -104,7 +105,6 @@ export async function colorizeImage(
 
   progress("Done!", 100);
 
-  // Convert to blob
   return new Promise((resolve, reject) => {
     finalCanvas.toBlob(
       (blob) => (blob ? resolve(blob) : reject(new Error("Failed to create blob"))),
